@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.12 2003/10/26 09:53:39 chongo Exp chongo $
+ * $Id: multisort.c,v 1.13 2003/10/26 10:51:50 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -12,7 +12,7 @@
  *    - Fixed some potential segfaults by checking the return values
  *      of various functions.
  *
- * Version 1.1.2 - 26 Oct 2003	(unofficial by chongo)
+ * Version 1.1.3 - 04 Jan 2004	(unofficial by chongo)
  *
  *    + Fixed sort bug where 01/Feb/2001:03:26:15 was incorrectly sorted
  *      before 31/Jan/2001:23:25:08
@@ -29,8 +29,9 @@
  *    + Added -m maxage which will output only lines <= maxage seconds old
  *      instead of all lines.
  *    + Updated the usage message.
+ *    + Compile with LFS support to be able to process log files >2GB
  *
- *    NOTE: For more information, unofficial multisort v1.1.2 patch URL:
+ *    NOTE: For more information, unofficial multisort v1.1.3 patch URL:
  *
  *	  http://www.isthe.com/chongo/src/multisort-patch/index.html
  *
@@ -53,6 +54,13 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  ***********************************************************************/
+
+/* 
+ * force Large File Usage (LFS) under Linux -
+ * see: http://www.suse.de/~aj/linux_lfs.html
+ */
+#define _FILE_OFFSET_BITS=64
+#define _LARGEFILE_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -318,7 +326,7 @@ usage(void)
         fprintf(stderr, "\t-m maxage  output only lines <= maxage secs old\n");
         fprintf(stderr, "\t\t   without -m, it will output all lines\n\n");
         fprintf(stderr, "\tLOGFILE name of - means read from stdin\n\n");
-        fprintf(stderr, "multisort 1.1.2 Copyright (C) 1999 Zachary Beane\n\n"
+        fprintf(stderr, "multisort 1.1.3 Copyright (C) 1999 Zachary Beane\n\n"
                 "\tSee http://www.xach.com/multisort/index.html for more info\n"
 		"\tas well as an EMail address for multisort bug reports.\n\n");
         fprintf(stderr,
