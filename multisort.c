@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.6 2001/11/23 12:22:50 chongo Exp chongo $
+ * $Id: multisort.c,v 1.7 2001/11/30 21:25:38 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -36,6 +36,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/time.h>
 
 
 struct _input_file {
@@ -288,9 +291,11 @@ conv_time(char *s)
 void
 usage(void)
 {
-        fprintf(stderr, "usage: multisort LOGFILE1 LOGFILE2 [LOGFILEn ...]\n");
+        fprintf(stderr, "usage: multisort [-m maxage_in_secs] [LOGFILE1 [LOGFILEn ...]\n");
         fprintf(stderr, "\n");
         fprintf(stderr, "multisort 1.1 Copyright (C) 1999 Zachary Beane\n");
+        fprintf(stderr, "Bug fixes and -m mod by chongo\n");
+        fprintf(stderr, "http://www.isthe.com/chongo/index.html\n");
         fprintf(stderr, "This program has NO WARRANTY and is licensed "
                 "under the terms of the\nGNU General Public License.\n"
                 "http://www.xach.com/multisort/ - bugs to xach@mint.net\n");
@@ -307,9 +312,42 @@ main(int argc, char *argv[])
         int if_nr		= 0;	/* number of active input files */
         char *ret 		= NULL;
         long long min_time	= 0LL;
+	long long oldest_time	= 0LL;	/* timestamp of old record to output */
+	long long now;			/* prog start time */
+	long long max_age;		/* -m arg, ignore this many secs old */
         int min_index		= 0;
+	struct timeval utc_now;		/* prog start time in UTC */
+	struct timezone ignored;	/* ignored timezone arg */
         int i, j;
-        
+
+	/* determine the time, now, in UTC */
+	if (gettimeofday(&utc_now, &ignored) < 0) {
+		perror("gettimeofday");
+		exit(1);
+	}
+	now = (long long)utc_now.tv_sec;
+
+	/* parse -m max_age if found */
+	max_age = now;
+	if (argc > 1 && strcmp(argv[1], "-m") == 0) {
+		/* convert max_age to a numeric value if we can */
+		errno = 0;
+		max_age = strtoll(argv[2], NULL, 0);
+		if (errno != 0) {
+			perror("strtoll");
+			exit(1);
+		}
+		/* cover up the -m max_age arg pair */
+		argv[2] = argv[0];
+		argc -= 2;
+		argv += 2;
+	}
+
+	/* compute time oldest record to output - cannot be before epoch */
+	if (now > max_age) {
+		oldest_time = now - max_age;
+	}
+
         if (argc < 2) {
                 usage();
         }
@@ -357,7 +395,7 @@ main(int argc, char *argv[])
 
         while (if_nr > 0) {
                 min_index = 0;
-                min_time = 9223372036854775807LL;
+                min_time = 0x7fffffffffffffffLL;	/* 2^63-1 */
                 for (i = 0; i < if_count; i++) {
                         if (!if_list[i]->enabled)
                                 continue;
@@ -369,9 +407,11 @@ main(int argc, char *argv[])
                         }
                 }
 
-                /* output the lowest */
+                /* output the lowest - silently ignore if too old */
                 /* printf("%s ", if_list[min_index]->name); */
-                fputs(if_list[min_index]->buf, stdout);
+		if (min_time >= oldest_time) {
+			fputs(if_list[min_index]->buf, stdout);
+		}
 
                 /* refill the buffer */
 		if (if_list[min_index]->enabled) {
