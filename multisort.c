@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.11 2003/10/26 09:25:12 chongo Exp chongo $
+ * $Id: multisort.c,v 1.12 2003/10/26 09:53:39 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -11,6 +11,28 @@
  *
  *    - Fixed some potential segfaults by checking the return values
  *      of various functions.
+ *
+ * Version 1.1.2 - 26 Oct 2003	(unofficial by chongo)
+ *
+ *    + Fixed sort bug where 01/Feb/2001:03:26:15 was incorrectly sorted
+ *      before 31/Jan/2001:23:25:08
+ *    + Fixed bugs related to very old dates and dates far in the future.
+ *    + Fixed bugs related to processing empty input files.
+ *    + Correctly distinguishes between file EOF and read errors.
+ *    + Allows multisort to just process a single file.
+ *    + Added slightly better sanity checks on timestamp string formats.
+ *    + Fixed a bug where multisort could hang on an I/O error.
+ *    + Correctly computes POSIX "Seconds since the Epoch" values
+ *      with full leapyear rules.
+ *    + Speedup as per Bertrand Demiddelaer's patch of:
+ *    	http://bert.tuxfamily.org/patches/multisort.patch
+ *    + Added -m maxage which will output only lines <= maxage seconds old
+ *      instead of all lines.
+ *    + Updated the usage message.
+ *
+ *    NOTE: For more information, unofficial multisort v1.1.2 patch URL:
+ *
+ *	  http://www.isthe.com/chongo/src/multisort-patch/index.html
  *
  * Zachary Beane <xach@mint.net>
  *
