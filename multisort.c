@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.4 2001/11/23 11:47:23 chongo Exp chongo $
+ * $Id: multisort.c,v 1.5 2001/11/23 11:53:33 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -54,18 +54,18 @@ typedef struct _input_file InputFile;
 struct month { char *name; int pos; };
 
 long long month_offset[12] = { 
-	0,   /* Jan */
-	31,  /* Feb */
-	59,  /* Mar */
-	90,  /* Apr */
-	120, /* May */
-	151, /* Jun */
-	181, /* Jul */
-	212, /* Aug */
-	243, /* Sep */
-	273, /* Oct */
-	304, /* Nov */
-	334  /* Dec */
+	-1,  /* Jan */
+	30,  /* Feb */
+	58,  /* Mar */
+	89,  /* Apr */
+	119, /* May */
+	150, /* Jun */
+	180, /* Jul */
+	211, /* Aug */
+	242, /* Sep */
+	272, /* Oct */
+	303, /* Nov */
+	333  /* Dec */
 };
 
 #define TOTAL_KEYWORDS 12
