@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.9 2003/05/03 21:54:07 chongo Exp chongo $
+ * $Id: multisort.c,v 1.10 2003/10/26 09:15:16 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -307,7 +307,7 @@ usage(void)
 		"chongo (Landon Curt Noll) -- Share and Enjoy! :-)\n\n");
         fprintf(stderr, "\thttp://www.isthe.com/chongo/index.html\n");
         fprintf(stderr,
-		"\thttp://www.isthe.com/chongo/src/multisort/index.html\n");
+	    "\thttp://www.isthe.com/chongo/src/multisort-patch/index.html\n");
                 
         exit(1);
 }
