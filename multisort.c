@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.2 2001/11/23 10:12:52 chongo Exp chongo $
+ * $Id: multisort.c,v 1.3 2001/11/23 11:20:48 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -344,8 +344,8 @@ main(int argc, char *argv[])
 		if (ret == NULL) {
 			if (ferror(if_list[j]->in_fh)) {
 				fprintf(stderr,
-					"multisort: I/O error on file `%s'",
-					if_list[j]->name);
+				    "multisort: read error, file `%s'",
+				    if_list[j]->name);
 			}
 			fclose(if_list[j]->in_fh);
 			if_list[j]->enabled = 0;
@@ -354,8 +354,8 @@ main(int argc, char *argv[])
 		++if_nr;
         }
 
-        while (if_nr) {
-                min_index = -1;
+        while (if_nr > 0) {
+                min_index = 0;
                 min_time = 9223372036854775807LL;
                 for (i = 0; i < if_count; i++) {
                         if (!if_list[i]->enabled)
@@ -367,9 +367,6 @@ main(int argc, char *argv[])
                                 min_index = i;
                         }
                 }
-		if (min_index < 0) {
-			break;
-		}
 
                 /* output the lowest */
                 /* printf("%s ", if_list[min_index]->name); */
@@ -380,6 +377,11 @@ main(int argc, char *argv[])
 			ret = fgets(if_list[min_index]->buf, BUFSIZ,
 				    if_list[min_index]->in_fh);
 			if (ret == NULL) {
+				if (ferror(if_list[min_index]->in_fh)) {
+					fprintf(stderr,
+					    "multisort: fgets error, file `%s'",
+					    if_list[j]->name);
+				}
 				if_list[min_index]->enabled = 0;
 				fclose(if_list[min_index]->in_fh);
 				if_nr--;
