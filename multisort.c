@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.7 1999/10/28 19:11:48 xach Exp $
+ * $Id: multisort.c,v 1.1 2001/11/23 10:03:57 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -314,10 +314,14 @@ main(int argc, char *argv[])
 
                 /* Read the first line for each open file */
                 ret = fgets(if_list[j]->buf, BUFSIZ, if_list[j]->in_fh);
-                if (ret == NULL) {
-                        fprintf(stderr, "multisort: empty input file `%s'",
-                                if_list[j]->name);
-                        exit(1);
+		if (ret == NULL) {
+			if (ferror(if_list[j]->in_fh)) {
+				fprintf(stderr,
+					"multisort: I/O error on file `%s'",
+					if_list[j]->name);
+			}
+			fclose(if_list[j]->in_fh);
+			if_list[j]->enabled = 0;
                 }
 
         }
