@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.7 2001/11/30 21:25:38 chongo Exp chongo $
+ * $Id: multisort.c,v 1.8 2003/05/03 21:23:23 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -291,8 +291,8 @@ conv_time(char *s)
 void
 usage(void)
 {
-        fprintf(stderr, "usage: multisort [-m maxage_in_secs] [LOGFILE1 [LOGFILEn ...]\n");
-        fprintf(stderr, "\n");
+        fprintf(stderr, "usage: multisort [-m maxage_in_secs] LOGFILE1 [LOGFILEn ...]\n");
+        fprintf(stderr, "\t- means read from standard input\n");
         fprintf(stderr, "multisort 1.1 Copyright (C) 1999 Zachary Beane\n");
         fprintf(stderr, "Bug fixes and -m mod by chongo\n");
         fprintf(stderr, "http://www.isthe.com/chongo/index.html\n");
@@ -367,7 +367,11 @@ main(int argc, char *argv[])
                         exit(1);
                 }
                 if_list[j]->name = strdup(argv[i]);
-                if_list[j]->in_fh = fopen(argv[i], "r");
+		if (strcmp(if_list[j]->name, "-") == 0) {
+		    if_list[j]->in_fh = stdin;
+		} else {
+		    if_list[j]->in_fh = fopen(argv[i], "r");
+		}
                 
                 if (if_list[j]->in_fh == NULL) {
                         fprintf(stderr, "multisort: %s: %s\n", argv[i], 
