@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.1 2001/11/23 10:03:57 chongo Exp chongo $
+ * $Id: multisort.c,v 1.2 2001/11/23 10:12:52 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -42,7 +42,7 @@ struct _input_file {
         int enabled;
         char *name;
         FILE *in_fh;
-        long atime;
+        long long atime;
         char buf[BUFSIZ + 1];
 };
 
@@ -52,6 +52,21 @@ typedef struct _input_file InputFile;
 /* ANSI-C code produced by gperf version 2.7 */
 /* Command-line: gperf -t -k* -L ANSI-C  */
 struct month { char *name; int pos; };
+
+long long month_offset[12] = { 
+	0,   /* Jan */
+	31,  /* Feb */
+	59,  /* Mar */
+	90,  /* Apr */
+	120, /* May */
+	151, /* Jun */
+	181, /* Jul */
+	212, /* Aug */
+	243, /* Sep */
+	273, /* Oct */
+	304, /* Nov */
+	334  /* Dec */
+};
 
 #define TOTAL_KEYWORDS 12
 #define MIN_WORD_LENGTH 3
@@ -181,9 +196,12 @@ debug(char *format, ...)
  *  Ok, for this new update, don't be so bloody slack about not checking
  *  return values and string lengths and such. Lazy bastard.
  *
+ *  Return POSIX "Seconds since the Epoch" with th extension that a
+ *  long long (64 bit) value is returned and the 100/400 year leapyear
+ *  rule.
  */
                    
-long
+long long
 conv_time(char *s)
 {
         char *ptr;
@@ -208,6 +226,15 @@ conv_time(char *s)
                 return 0;
 
         orig_ptr = ptr;
+        if (ptr[2] != '/' ||
+	    ptr[6] != '/' ||
+	    ptr[11] != ':' ||
+	    ptr[14] != ':' ||
+	    ptr[17] != ':' ||
+	    ptr[20] != ' ') {
+	    /* malformed date string */
+	    return 0;
+	}
         ptr[2] = '\0';
         ptr[6] = '\0';
         ptr[11] = '\0';
@@ -227,7 +254,7 @@ conv_time(char *s)
 
 
         ptr += 4;
-        year = atoi(ptr) - 1990;
+        year = atoi(ptr) - 1900;
         
         ptr += 5;
         hour = atoi(ptr);
@@ -249,12 +276,12 @@ conv_time(char *s)
         ptr[17] = ':';
         ptr[20] = ' ';
 
-        return((year * 31104000)
-               + (mon * 2592000)
-               + (mday * 86400)
-               + (hour * 3600)
-               + (min * 60) 
-               + sec);
+	return (sec + (min * 60LL) + (hour * 3600LL) +	    /* sec of day */
+		((month_offset[mon]+mday) * 86400LL) +	    /* day of year */
+		((year-70) * 31536000LL) +		    /* Epoch year */
+		(((year-69)/4) * 86400LL) - 		    /* leap days */
+		(((year-100)/100) * 86400LL) +		    /* 100yr rule */
+		(((year-100)/400) * 86400LL));		    /* 400yr rule */
 }
 
 
@@ -279,11 +306,11 @@ main(int argc, char *argv[])
         int if_count 		= 0;	/* number of total input files */
         int if_nr		= 0;	/* number of active input files */
         char *ret 		= NULL;
-        long min_time		= 0;
+        long long min_time	= 0LL;
         int min_index		= 0;
         int i, j;
         
-        if (argc < 3) {
+        if (argc < 2) {
                 usage();
         }
 
@@ -323,14 +350,13 @@ main(int argc, char *argv[])
 			fclose(if_list[j]->in_fh);
 			if_list[j]->enabled = 0;
                 }
-
+		++if_count;
+		++if_nr;
         }
 
-        if_count = if_nr = j;
-
         while (if_nr) {
-                min_index = 0;
-                min_time = 900000000L;
+                min_index = -1;
+                min_time = 9223372036854775807LL;
                 for (i = 0; i < if_count; i++) {
                         if (!if_list[i]->enabled)
                                 continue;
@@ -341,18 +367,23 @@ main(int argc, char *argv[])
                                 min_index = i;
                         }
                 }
+		if (min_index < 0) {
+			break;
+		}
 
                 /* output the lowest */
                 /* printf("%s ", if_list[min_index]->name); */
                 fputs(if_list[min_index]->buf, stdout);
 
                 /* refill the buffer */
-                ret = fgets(if_list[min_index]->buf, BUFSIZ,
-                            if_list[min_index]->in_fh);
-                if (ret == NULL) {
-                        if_list[min_index]->enabled = 0;
-                        fclose(if_list[min_index]->in_fh);
-                        if_nr--;
+		if (if_list[min_index]->enabled) {
+			ret = fgets(if_list[min_index]->buf, BUFSIZ,
+				    if_list[min_index]->in_fh);
+			if (ret == NULL) {
+				if_list[min_index]->enabled = 0;
+				fclose(if_list[min_index]->in_fh);
+				if_nr--;
+			}
                 }
         }
 
