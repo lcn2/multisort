@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.13 2003/10/26 10:51:50 chongo Exp chongo $
+ * $Id: multisort.c,v 1.14 2004/01/06 14:21:51 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -59,7 +59,7 @@
  * force Large File Usage (LFS) under Linux -
  * see: http://www.suse.de/~aj/linux_lfs.html
  */
-#define _FILE_OFFSET_BITS=64
+#define _FILE_OFFSET_BITS 64
 #define _LARGEFILE_SOURCE
 
 #include <stdio.h>
