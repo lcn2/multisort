@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.3 2001/11/23 11:20:48 chongo Exp chongo $
+ * $Id: multisort.c,v 1.4 2001/11/23 11:47:23 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -380,7 +380,7 @@ main(int argc, char *argv[])
 				if (ferror(if_list[min_index]->in_fh)) {
 					fprintf(stderr,
 					    "multisort: fgets error, file `%s'",
-					    if_list[j]->name);
+					    if_list[min_index]->name);
 				}
 				if_list[min_index]->enabled = 0;
 				fclose(if_list[min_index]->in_fh);
