@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.8 2003/05/03 21:23:23 chongo Exp chongo $
+ * $Id: multisort.c,v 1.9 2003/05/03 21:54:07 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -291,14 +291,23 @@ conv_time(char *s)
 void
 usage(void)
 {
-        fprintf(stderr, "usage: multisort [-m maxage_in_secs] LOGFILE1 [LOGFILEn ...]\n");
-        fprintf(stderr, "\t- means read from standard input\n");
-        fprintf(stderr, "multisort 1.1 Copyright (C) 1999 Zachary Beane\n");
-        fprintf(stderr, "Bug fixes and -m mod by chongo\n");
-        fprintf(stderr, "http://www.isthe.com/chongo/index.html\n");
-        fprintf(stderr, "This program has NO WARRANTY and is licensed "
-                "under the terms of the\nGNU General Public License.\n"
-                "http://www.xach.com/multisort/ - bugs to xach@mint.net\n");
+        fprintf(stderr,
+		"usage: multisort [-m maxage] LOGFILE1 [LOGFILEn ...]\n\n");
+        fprintf(stderr, "\t-m maxage  output only lines <= maxage secs old\n");
+        fprintf(stderr, "\t\t   without -m, it will output all lines\n\n");
+        fprintf(stderr, "\tLOGFILE name of - means read from stdin\n\n");
+        fprintf(stderr, "multisort 1.1.2 Copyright (C) 1999 Zachary Beane\n\n"
+                "\tSee http://www.xach.com/multisort/index.html for more info\n"
+		"\tas well as an EMail address for multisort bug reports.\n\n");
+        fprintf(stderr,
+		"\tThis program has NO WARRANTY and is licensed under the\n"
+		"\tterms of the GNU General Public License.\n\n");
+        fprintf(stderr,
+		"This code as bug fixes and other improvements by\n"
+		"chongo (Landon Curt Noll) -- Share and Enjoy! :-)\n\n");
+        fprintf(stderr, "\thttp://www.isthe.com/chongo/index.html\n");
+        fprintf(stderr,
+		"\thttp://www.isthe.com/chongo/src/multisort/index.html\n");
                 
         exit(1);
 }
@@ -392,6 +401,7 @@ main(int argc, char *argv[])
 			fclose(if_list[j]->in_fh);
 			if_list[j]->enabled = 0;
                 } else {
+			if_list[j]->atime = conv_time(if_list[j]->buf);
 			++if_nr;
 		}
 		++if_count;
@@ -404,7 +414,6 @@ main(int argc, char *argv[])
                         if (!if_list[i]->enabled)
                                 continue;
 
-                        if_list[i]->atime = conv_time(if_list[i]->buf);
                         if (if_list[i]->atime < min_time) {
                                 min_time = if_list[i]->atime;
                                 min_index = i;
@@ -430,6 +439,8 @@ main(int argc, char *argv[])
 				if_list[min_index]->enabled = 0;
 				fclose(if_list[min_index]->in_fh);
 				if_nr--;
+			} else {
+				if_list[min_index]->atime = conv_time(if_list[min_index]->buf);
 			}
                 }
         }
