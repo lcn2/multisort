@@ -3,7 +3,7 @@
  * multisort - sort multiple Common Log Format files into a single, 
  *             date-ordered file
  *
- * $Id: multisort.c,v 1.5 2001/11/23 11:53:33 chongo Exp chongo $
+ * $Id: multisort.c,v 1.6 2001/11/23 12:22:50 chongo Exp chongo $
  *
  * Version 1.0 - 14 Jan 1999
  *
@@ -349,9 +349,10 @@ main(int argc, char *argv[])
 			}
 			fclose(if_list[j]->in_fh);
 			if_list[j]->enabled = 0;
-                }
+                } else {
+			++if_nr;
+		}
 		++if_count;
-		++if_nr;
         }
 
         while (if_nr > 0) {
