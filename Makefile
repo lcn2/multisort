@@ -2,9 +2,9 @@
 #
 # multisort - sort multiple time logs into a single time log
 #
-# @(#) $Revision$
-# @(#) $Id$
-# @(#) $Source$
+# @(#) $Revision: 1.2 $
+# @(#) $Id: Makefile,v 1.2 2000/05/27 19:59:09 chongo Exp chongo $
+# @(#) $Source: /usr/local/src/etc/multisort/RCS/Makefile,v $
 #
 # Copyright (c) 2000 by Landon Curt Noll.  All Rights Reserved.
 #
@@ -35,6 +35,7 @@ INSTALL = install
 DESTDIR = /usr/local/etc
 CC = gcc
 CFLAGS = -Wall -g -O2
+#CFLAGS = -Wall -g3
 
 all: multisort
 
