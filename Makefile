@@ -2,8 +2,8 @@
 #
 # multisort - sort multiple time logs into a single time log
 #
-# @(#) $Revision: 1.7 $
-# @(#) $Id: Makefile,v 1.7 2004/01/06 14:27:05 chongo Exp root $
+# @(#) $Revision: 1.8 $
+# @(#) $Id: Makefile,v 1.8 2015/09/06 10:35:51 root Exp $
 # @(#) $Source: /usr/local/src/sbin/multisort/RCS/Makefile,v $
 
 SHELL = /bin/sh
