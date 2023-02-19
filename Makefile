@@ -1,28 +1,25 @@
-#!/usr/bin/make
+#!/usr/bin/env make
 #
 # multisort - sort multiple time logs into a single time log
-#
-# @(#) $Revision: 1.8 $
-# @(#) $Id: Makefile,v 1.8 2015/09/06 10:35:51 root Exp $
-# @(#) $Source: /usr/local/src/sbin/multisort/RCS/Makefile,v $
 
-SHELL = /bin/sh
-INSTALL = install
-DESTDIR = /usr/local/sbin
-CC = gcc
-CFLAGS = -Wall -g3 -O3
-#CFLAGS = -Wall -g3
+SHELL= bash
+INSTALL= install
+DESTDIR= /usr/local/sbin
+CC= cc
+CFLAGS= -Wall -g3 -O3
+#CFLAGS= -Wall -g3
+RM= rm
 
 all: multisort
 
 multisort: multisort.c
-	$(CC) $(CFLAGS) -o multisort multisort.c
+	${CC} ${CFLAGS} -o multisort multisort.c
 
 clean:
-	rm -f multisort.o
+	${RM} -f multisort.o
 
 clobber: clean
-	rm -f multisort
+	${RM} -f multisort
 
 install: all
 	${INSTALL} -m 0555 multisort ${DESTDIR}/multisort
