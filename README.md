@@ -83,8 +83,14 @@ Modifications 2000,2001,2003-2004,2023,2025 by:
 
 # See also
 
-http://www.xach.com/multisort/
-http://www.xach.com/multisort/multisort-1.1.tar.gz
+* https://github.com/lcn2/multisort
+
+
+## For an older version 1.1 1999-01-14 of this code, see:
+
+* http://www.xach.com/multisort/
+
+* http://www.xach.com/multisort/multisort-1.1.tar.gz
 
 
 # Reporting Security Issues
