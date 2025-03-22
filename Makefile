@@ -1,25 +1,116 @@
 #!/usr/bin/env make
 #
 # multisort - sort multiple time logs into a single time log
+#
+# NOTE: This copyright ONLY applies to this Makefile, not the source:
+#
+# Copyright (c) 2000,2001,2003-2004,2023,2025 by Landon Curt Noll.  All Rights Reserved.
+#
+# Permission to use, copy, modify, and distribute this software and
+# its documentation for any purpose and without fee is hereby granted,
+# provided that the above copyright, this permission notice and text
+# this comment, and the disclaimer below appear in all of the following:
+#
+#       supporting documentation
+#       source copies
+#       source works derived from this source
+#       binaries derived from this source or from derived source
+#
+# LANDON CURT NOLL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO
+# EVENT SHALL LANDON CURT NOLL BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+# USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# chongo (Landon Curt Noll) /\oo/\
+#
+# http://www.isthe.com/chongo/index.html
+# https://github.com/lcn2
+#
+# Share and enjoy!  :-)
 
-SHELL= bash
-INSTALL= install
-DESTDIR= /usr/local/sbin
+
+#############
+# utilities #
+#############
+
 CC= cc
-CFLAGS= -Wall -g3 -O3
-#CFLAGS= -Wall -g3
+CHMOD= chmod
+CP= cp
+ID= id
+INSTALL= install
 RM= rm
+SHELL= bash
 
-all: multisort
+#CFLAGS= -O3 -g3 --pedantic -Wall -Werror
+CFLAGS= -O3 -g3 --pedantic -Wall
 
-multisort: multisort.c
-	${CC} ${CFLAGS} -o multisort multisort.c
+
+######################
+# target information #
+######################
+
+# V=@:  do not echo debug statements (quiet mode)
+# V=@   echo debug statements (debug / verbose mode)
+#
+V=@:
+#V=@
+
+DESTDIR= /usr/local/bin
+
+TARGETS= multisort
+
+
+######################################
+# all - default rule - must be first #
+######################################
+
+all: ${TARGETS}
+	${V} echo DEBUG =-= $@ start =-=
+	${V} echo DEBUG =-= $@ end =-=
+
+multisort.o: multisort.c
+	${V} echo DEBUG =-= $@ start =-=
+	${CC} ${CFLAGS} multisort.c -c
+	${V} echo DEBUG =-= $@ end =-=
+
+multisort: multisort.o
+	${V} echo DEBUG =-= $@ start =-=
+	${CC} ${CFLAGS} multisort.o -o $@
+	${V} echo DEBUG =-= $@ end =-=
+
+
+#################################################
+# .PHONY list of rules that do not create files #
+#################################################
+
+.PHONY: all configure clean clobber install
+
+
+###################################
+# standard Makefile utility rules #
+###################################
+
+configure:
+	${V} echo DEBUG =-= $@ start =-=
+	${V} echo DEBUG =-= $@ end =-=
 
 clean:
+	${V} echo DEBUG =-= $@ start =-=
 	${RM} -f multisort.o
+	${V} echo DEBUG =-= $@ end =-=
 
 clobber: clean
+	${V} echo DEBUG =-= $@ start =-=
 	${RM} -f multisort
+	${RM} -rf multisort.dSYM
+	${V} echo DEBUG =-= $@ end =-=
 
 install: all
-	${INSTALL} -m 0555 multisort ${DESTDIR}/multisort
+	${V} echo DEBUG =-= $@ start =-=
+	@if [[ $$(${ID} -u) != 0 ]]; then echo "ERROR: must be root to make $@" 1>&2; exit 2; fi
+	${INSTALL} -d -m 0755 ${DESTDIR}
+	${INSTALL} -m 0555 ${TARGETS} ${DESTDIR}
+	${V} echo DEBUG =-= $@ end =-=

@@ -1,6 +1,6 @@
 /***********************************************************************
  *
- * multisort - sort multiple Common Log Format files into a single, 
+ * multisort - sort multiple Common Log Format files into a single,
  *             date-ordered file
  *
  * $Id: multisort.c,v 1.15 2004/01/06 14:26:51 chongo Exp $
@@ -25,15 +25,19 @@
  *    + Correctly computes POSIX "Seconds since the Epoch" values
  *      with full leapyear rules.
  *    + Speedup as per Bertrand Demiddelaer's patch of:
- *    	http://bert.tuxfamily.org/patches/multisort.patch
+ *	http://bert.tuxfamily.org/patches/multisort.patch
  *    + Added -m maxage which will output only lines <= maxage seconds old
  *      instead of all lines.
  *    + Updated the usage message.
  *    + Compile with LFS support to be able to process log files >2GB
  *
- *    NOTE: For more information, unofficial multisort v1.1.3 patch URL:
  *
- *	  http://www.isthe.com/chongo/src/multisort-patch/index.html
+ * Version 1.1.4 - 2025 Mar 22	(unofficial by chongo)
+ *
+ *    * Source code whitespace cleanup
+ *    * Fix GNU static inline compile problem
+ *    * Updated chongo usage message
+ *    * Misc changes to get ready for a GitHub release
  *
  * Zachary Beane <xach@mint.net>
  *
@@ -55,7 +59,7 @@
  *
  ***********************************************************************/
 
-/* 
+/*
  * force Large File Usage (LFS) under Linux -
  * see: http://www.suse.de/~aj/linux_lfs.html
  */
@@ -69,7 +73,9 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <unistd.h>
 
+static char *version = "1.1.4 2025-03-22";
 
 struct _input_file {
         int enabled;
@@ -81,12 +87,14 @@ struct _input_file {
 
 typedef struct _input_file InputFile;
 
+static char *program = NULL;	/* our name */
+
 
 /* ANSI-C code produced by gperf version 2.7 */
 /* Command-line: gperf -t -k* -L ANSI-C  */
 struct month { char *name; int pos; };
 
-long long month_offset[12] = { 
+long long month_offset[12] = {
 	-1,  /* Jan */
 	30,  /* Feb */
 	58,  /* Mar */
@@ -160,7 +168,7 @@ hash (register const char *str, register unsigned int len)
 }
 
 #ifdef __GNUC__
-__inline
+static __inline
 #endif
 struct month *
 in_word_set (register const char *str, register unsigned int len)
@@ -223,7 +231,7 @@ debug(char *format, ...)
 
 
 /* conv_time
- *  Take a common log format string and return a sortable value. Use a hash 
+ *  Take a common log format string and return a sortable value. Use a hash
  *  table for month lookup.
  *
  *  Ok, for this new update, don't be so bloody slack about not checking
@@ -233,7 +241,7 @@ debug(char *format, ...)
  *  long long (64 bit) value is returned and the 100/400 year leapyear
  *  rule.
  */
-                   
+
 long long
 conv_time(char *s)
 {
@@ -253,7 +261,7 @@ conv_time(char *s)
         if (ptr == NULL)
                 return 0;
 
-        ptr++; 			/* skip the bracket */
+        ptr++;			/* skip the bracket */
 
         if (strlen(ptr) < 21)
                 return 0;
@@ -288,7 +296,7 @@ conv_time(char *s)
 
         ptr += 4;
         year = atoi(ptr) - 1900;
-        
+
         ptr += 5;
         hour = atoi(ptr);
 
@@ -297,7 +305,7 @@ conv_time(char *s)
 
         ptr += 3;
         sec = atoi(ptr);
-        
+
         /* Restore the characters to their original state (this saves us a
            strdup!) Yay. */
 
@@ -312,7 +320,7 @@ conv_time(char *s)
 	return (sec + (min * 60LL) + (hour * 3600LL) +	    /* sec of day */
 		((month_offset[mon]+mday) * 86400LL) +	    /* day of year */
 		((year-70) * 31536000LL) +		    /* Epoch year */
-		(((year-69)/4) * 86400LL) - 		    /* leap days */
+		(((year-69)/4) * 86400LL) -		    /* leap days */
 		(((year-100)/100) * 86400LL) +		    /* 100yr rule */
 		(((year-100)/400) * 86400LL));		    /* 400yr rule */
 }
@@ -321,35 +329,58 @@ conv_time(char *s)
 void
 usage(void)
 {
-        fprintf(stderr,
-		"usage: multisort [-m maxage] LOGFILE1 [LOGFILEn ...]\n\n");
-        fprintf(stderr, "\t-m maxage  output only lines <= maxage secs old\n");
-        fprintf(stderr, "\t\t   without -m, it will output all lines\n\n");
-        fprintf(stderr, "\tLOGFILE name of - means read from stdin\n\n");
-        fprintf(stderr, "multisort 1.1.3 Copyright (C) 1999 Zachary Beane\n\n"
-                "\tSee http://www.xach.com/multisort/index.html for more info\n"
-		"\tas well as an EMail address for multisort bug reports.\n\n");
-        fprintf(stderr,
-		"\tThis program has NO WARRANTY and is licensed under the\n"
-		"\tterms of the GNU General Public License.\n\n");
-        fprintf(stderr,
-		"This code has bug fixes and other improvements by\n"
-		"chongo (Landon Curt Noll) -- Share and Enjoy! :-)\n\n");
-        fprintf(stderr, "\thttp://www.isthe.com/chongo/index.html\n");
-        fprintf(stderr,
-	    "\thttp://www.isthe.com/chongo/src/multisort-patch/index.html\n");
-                
-        exit(1);
+        fprintf(stderr, "usage: multisort [-h] [-m maxage] LOGFILE1 [LOGFILEn ...]\n"
+		        "\n"
+			"    -h		print help message and exit\n"
+			"    -m maxage	output only lines <= maxage secs old (def: output all lines)\n"
+		        "\n"
+			"    LOGFILE*	httpd log file in Common Log Format, - ==> read stdin\n"
+			"\n"
+			"multisort version: %s\n"
+			"\n"
+			"Copyright (C) 1999 Zachary Beane\n"
+			"\n"
+			"    This program is free software; you can redistribute it and/or modify\n"
+			"    it under the terms of the GNU General Public License as published by\n"
+			"    the Free Software Foundation; either version 2 of the License, or\n"
+			"    (at your option) any later version.\n"
+			"\n"
+			"    This program is distributed in the hope that it will be useful,\n"
+			"    but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+			"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+			"    GNU General Public License for more details.\n"
+			"\n"
+			"    You should have received a copy of the GNU General Public License\n"
+			"    along with this program; if not, write to the Free Software\n"
+			"    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n"
+			"\n"
+			"For copy of the license, visit:\n"
+			"\n"
+			"    https://github.com/lcn2/multisort/blob/master/LICENSE\n"
+			"\n"
+			"For a copy of the GNU General Public v2, visit:\n"
+			"\n"
+			"    https://github.com/lcn2/multisort/blob/master/COPYING\n"
+			"\n"
+			"Modifications 2000,2001,2003-2004,2023,2025 by:\n"
+			"\n"
+			"    chongo (Landon Curt Noll) /\\oo/\\\n"
+			"\n"
+			"    http://www.isthe.com/chongo/index.html\n"
+			"    https://github.com/lcn2\n"
+			"\n"
+			"    Share and enjoy!  :-)\n",
+			version);
 }
 
 
 int
 main(int argc, char *argv[])
 {
-        InputFile **if_list 	= NULL;
-        int if_count 		= 0;	/* number of total input files */
+        InputFile **if_list	= NULL;
+        int if_count		= 0;	/* number of total input files */
         int if_nr		= 0;	/* number of active input files */
-        char *ret 		= NULL;
+        char *ret		= NULL;
         long long min_time	= 0LL;
 	long long oldest_time	= 0LL;	/* timestamp of old record to output */
 	long long now;			/* prog start time */
@@ -357,7 +388,10 @@ main(int argc, char *argv[])
         int min_index		= 0;
 	struct timeval utc_now;		/* prog start time in UTC */
 	struct timezone ignored;	/* ignored timezone arg */
-        int i, j;
+	extern char *optarg;		/* option argument */
+	extern int optind;		/* argv index of the next arg */
+        int i;
+        int j;
 
 	/* determine the time, now, in UTC */
 	if (gettimeofday(&utc_now, &ignored) < 0) {
@@ -366,20 +400,35 @@ main(int argc, char *argv[])
 	}
 	now = (long long)utc_now.tv_sec;
 
-	/* parse -m max_age if found */
+	/*
+	 * parse args
+	 */
+	program = argv[0];
 	max_age = now;
-	if (argc > 1 && strcmp(argv[1], "-m") == 0) {
-		/* convert max_age to a numeric value if we can */
+	while ((i = getopt(argc, argv, "hm:")) != -1) {
+	    switch (i) {
+	    case 'h':
+                usage();
+		exit(2);
+		break;
+	    case 'm':
 		errno = 0;
-		max_age = strtoll(argv[2], NULL, 0);
+		max_age = strtoll(optarg, NULL, 0);
 		if (errno != 0) {
 			perror("strtoll");
-			exit(1);
+			exit(3);
 		}
-		/* cover up the -m max_age arg pair */
-		argv[2] = argv[0];
-		argc -= 2;
-		argv += 2;
+		break;
+	    default:
+		fprintf(stderr, "%s: invalid command line\n\n", program);
+                usage();
+		exit(4);
+	    }
+	}
+	if (optind >= argc) {
+		fprintf(stderr, "%s: requires one or more logfile args\n\n", program);
+                usage();
+		exit(4);
 	}
 
 	/* compute time oldest record to output - cannot be before epoch */
@@ -387,23 +436,19 @@ main(int argc, char *argv[])
 		oldest_time = now - max_age;
 	}
 
-        if (argc < 2) {
-                usage();
-        }
-
         if_list = (InputFile **)malloc(sizeof(void *) * argc);
 
         if (if_list == NULL) {
                 perror("malloc");
-                exit(1);
+                exit(5);
         }
 
         /* Open up all the files */
-        for (i = 1, j = 0; i < argc; i++, j++) {
+        for (i = optind, j = 0; i < argc; i++, j++) {
                 if_list[j] = (InputFile *)malloc(sizeof(InputFile));
                 if (if_list[j] == NULL) {
                         perror("malloc");
-                        exit(1);
+                        exit(6);
                 }
                 if_list[j]->name = strdup(argv[i]);
 		if (strcmp(if_list[j]->name, "-") == 0) {
@@ -411,11 +456,11 @@ main(int argc, char *argv[])
 		} else {
 		    if_list[j]->in_fh = fopen(argv[i], "r");
 		}
-                
+
                 if (if_list[j]->in_fh == NULL) {
-                        fprintf(stderr, "multisort: %s: %s\n", argv[i], 
+                        fprintf(stderr, "multisort: %s: %s\n", argv[i],
                                 strerror(errno));
-                        exit(1);
+                        exit(7);
                 }
 
                 if_list[j]->enabled = 1;
@@ -474,9 +519,5 @@ main(int argc, char *argv[])
 			}
                 }
         }
-
-        exit(0);
+        exit(0); /*ooo*/
 }
-
-
-
