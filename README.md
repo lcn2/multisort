@@ -10,17 +10,11 @@ make clobber all
 sudo make install clobber
 ```
 
+
 # To use
 
-```sh
+```
 /usr/local/bin/multisort [-h] [-m maxage] LOGFILE1 [LOGFILEn ...]
-```
-
-
-# usage
-
-```
-multisort [-h] [-m maxage] LOGFILE1 [LOGFILEn ...]
 
     -h          print help message and exit
     -m maxage   output only lines <= maxage secs old (def: output all lines)
